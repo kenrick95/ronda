@@ -145,7 +145,7 @@ function format_summary($changes)
 class ronda
 {
 	var $user_agent = 'Ronda - A custom recent changes for Indonesian Wikipedia - User:IvanLanin';
-	var $default_limit = 10;
+	var $default_limit = 500;
 	var $default_ns = '0|1|2|4|5|6|7|8|9|10|11|12|13|14|15|100|101';
 	var $max_limit = 500;
 	var $min_limit = 1;
@@ -287,10 +287,9 @@ class ronda
 <link type="text/css" rel="stylesheet" href="style.css" />
 <script type="text/javascript" src="script.js"></script>
 <?php echo($HEADER); ?>
-<style>
-</style>
 </head>
 <body>
 <?php echo($CONTENT); ?>
+<div id="footer"><a href="http://code.google.com/p/ronda/"><strong>ronda</strong></a> | <a href="README.TXT">README</a></div>
 </body>
 </html>

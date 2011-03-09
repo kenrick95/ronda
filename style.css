@@ -5,6 +5,8 @@ table.rc td { padding: 2px 5px; border-bottom: 1px solid #FFF; }
 tr.anon td { background: #eee; }
 form { margin-bottom: 20px; padding: 5px; background: #eee; }
 
+#footer { margin-top: 20px; }
+
 .date { font-weight: bold; font-size: 120%; padding: 10px 0px; }
 .changes { font-style: italic; }
 
