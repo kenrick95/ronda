@@ -1,0 +1,28 @@
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+table.rc { border-collapse: collapse; width: 100%;  }
+table.rc td { padding: 2px 5px; border-bottom: 1px solid #FFF; }
+tr.anon td { background: #eee; }
+form { margin-bottom: 20px; padding: 5px; background: #eee; }
+
+.date { font-weight: bold; font-size: 120%; padding: 10px 0px; }
+.changes { font-style: italic; }
+
+.user-trusted { color: #999999; }
+.user-login { color: #330099; }
+.user-anon { color: #CC0000; }
+
+.size-neg { color:#FF2050; }
+.size-pos { color:#00B000; }
+.size-null { color:#999; }
+.size-large { font-weight: bold; }
+
+.ns-0, .ns-1 { background: #C0C0C0 !important; } /* Artikel */
+.ns-2, .ns-3 { background: #00FFFF !important; } /* Pengguna */
+.ns-4, .ns-5 { background: #800080 !important; } /* Wikipedia */
+.ns-6, .ns-7 { background: #800000 !important; } /* Berkas */
+.ns-8, .ns-9 { background: #FFFF00 !important; } /* MediaWiki */
+.ns-10, .ns-11 { background: #808000 !important; } /* Templat */
+.ns-12, .ns-13 { background: #FF00FF !important; } /* Bantuan */
+.ns-14, .ns-15 { background: #008080 !important; } /* Kategori */
+.ns-100, .ns-101 { background: #008000 !important; } /* Portal */
