@@ -145,7 +145,7 @@ function format_summary($changes)
 class ronda
 {
 	var $user_agent = 'Ronda - A custom recent changes for Indonesian Wikipedia - User:IvanLanin';
-	var $default_limit = 500;
+	var $default_limit = 10;
 	var $default_ns = '0|1|2|4|5|6|7|8|9|10|11|12|13|14|15|100|101';
 	var $max_limit = 500;
 	var $min_limit = 1;
@@ -200,8 +200,20 @@ class ronda
 				}
 			}
 		}
-		if (!$rc_ns) $rc_ns = $this->default_ns;
+		if ($rc_ns == '')
+		{
+			$rc_ns = $this->default_ns;
+			$get['ns_select'] = 1;
+		}
 		$rc_ns_array = explode('|', $rc_ns);
+
+		$ns_select = array(
+			1 => 'Bawaan',
+			2 => 'Semua',
+			3 => 'Hanya artikel',
+			4 => 'Tanpa pembicaraan',
+			5 => 'Hanya pembicaraan',
+		);
 
 		// search form
 		$search .= '<form id="search" name="search" method="get" action="./">';
@@ -214,7 +226,17 @@ class ronda
 			$rc_anon ? 'checked="checked" ' : '');
 		$search .= sprintf('<input type="checkbox" name="diff" value="1" %1$s/>Hanya perbedaan ',
 			$this->diff_only ? 'checked="checked" ' : '');
-		$search .= '<br />Ruang nama:';
+		$search .= '<br />Ruang nama: ';
+		$search .= '<select name="ns_select" id="ns_select" onChange="select_ns(this.form)">';
+		$search .= '<option value=""></option>';
+		foreach ($ns_select as $key => $val)
+		{
+			$search .= sprintf('<option value="%1$s"%3$s>%2$s</option>',
+				$key, $val,
+				$get['ns_select'] == $key ? 'selected' : ''
+			);
+		}
+		$search .= '</select>';
 		$search .= '<table class="search"><tr>';
 		foreach ($nss as $key => $val)
 		{
@@ -262,36 +284,10 @@ class ronda
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title><?php echo($TITLE); ?></title>
+<link type="text/css" rel="stylesheet" href="style.css" />
+<script type="text/javascript" src="script.js"></script>
 <?php echo($HEADER); ?>
 <style>
-a { text-decoration: none; }
-a:hover { text-decoration: underline; }
-table.rc { border-collapse: collapse; width: 100%;  }
-table.rc td { padding: 2px 5px; border-bottom: 1px solid #FFF; }
-tr.anon td { background: #eee; }
-form { margin-bottom: 20px; padding: 5px; background: #eee; }
-
-.date { font-weight: bold; font-size: 120%; padding: 10px 0px; }
-.changes { font-style: italic; }
-
-.user-trusted { color: #999999; }
-.user-login { color: #330099; }
-.user-anon { color: #CC0000; }
-
-.size-neg { color:#FF2050; }
-.size-pos { color:#00B000; }
-.size-null { color:#999; }
-.size-large { font-weight: bold; }
-
-.ns-0, .ns-1 { background: #C0C0C0 !important; } /* Artikel */
-.ns-2, .ns-3 { background: #00FFFF !important; } /* Pengguna */
-.ns-4, .ns-5 { background: #800080 !important; } /* Wikipedia */
-.ns-6, .ns-7 { background: #800000 !important; } /* Berkas */
-.ns-8, .ns-9 { background: #FFFF00 !important; } /* MediaWiki */
-.ns-10, .ns-11 { background: #808000 !important; } /* Templat */
-.ns-12, .ns-13 { background: #FF00FF !important; } /* Bantuan */
-.ns-14, .ns-15 { background: #008080 !important; } /* Kategori */
-.ns-100, .ns-101 { background: #008000 !important; } /* Portal */
 </style>
 </head>
 <body>

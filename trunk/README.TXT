@@ -14,3 +14,5 @@ Lisensi: GPL v3 atau yang lebih baru.
 * BARU: Dua baris pilihan ruang nama
 * INFO: Pranala ke WP:PT tidak dibuat karena bisa diakses setelah mengeklik salah satu pranala
 * BARU: Kolom penanda warna untuk masing-masing ruang nama
+* BARU: Set pilihan ruang nama (bawaan, semua, artikel, tanpa pembicaraan, hanya pembicaraan)
+* UBAH: Pemisahan gaya dan javascript menjadi berkas tersendiri
