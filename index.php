@@ -3,153 +3,26 @@
  * 2011-03-07 10:45
  */
 $ronda = new ronda();
-$raws = $ronda->rc($_GET);
-if ($raws)
-{
-	$rcs = array();
-	if ($raws2 = $raws['query']['recentchanges'])
-	{
-		// get unique page id
-		foreach ($raws2 as $raw)
-		{
-			$key = $raw['pageid'];
-			if (!array_key_exists($key, $rcs))
-			{
-				$rcs[$key]['pageid'] = $raw['pageid'];
-				$rcs[$key]['revid'] = $raw['revid'];
-				$rcs[$key]['old_revid'] = $raw['old_revid'];
-				if (array_key_exists('minor', $raw)) $rcs[$key]['minor'] = $raw['minor'];
-				$rcs[$key]['timestamp'] = $raw['timestamp'];
-				$rcs[$key]['title'] = $raw['title'];
-				$rcs[$key]['user'] = $raw['user'];
-				$rcs[$key]['type'] = $raw['type'];
-				$rcs[$key]['newlen'] = $raw['newlen'];
-				$rcs[$key]['oldlen'] = $raw['oldlen'];
-				$rcs[$key]['count'] = 1;
-				$rcs[$key]['users'][$raw['user']]['count'] = 1;
-			}
-			else
-			{
-				if (array_key_exists('new', $raw)) $rcs[$key]['type'] = 'new';
-				$rcs[$key]['old_revid'] = $raw['old_revid'];
-				$rcs[$key]['count']++;
-				$rcs[$key]['users'][$raw['user']]['count']++;
-				$rcs[$key]['oldlen'] = $raw['oldlen'];
-			}
-			$rcs[$key]['changes'][] = $raw;
-			$rcs[$key]['ns'] = $raw['ns'];
-			if (array_key_exists('anon', $raw))
-			{
-				$rcs[$key]['anon'] = 'yes';
-				$rcs[$key]['users'][$raw['user']]['anon'] = true;
-			}
-		}
-		// write
-		$trusted = array(
-			'Meursault2004',
-			'Hayabusa future',
-			'Stephensuleeman',
-			'IvanLanin',
-			'Ciko',
-			'Wic2020',
-			'Rintojiang',
-			'REX',
-			'Kembangraps',
-			'Gombang',
-			'Andri.h',
-			'Tjmoel',
-			'Mimihitam',
-			'BlackKnight',
+$ronda->rc($_GET);
+$ret = $ronda->html();
 
-			'Alagos',
-			'Albertus Aditya',
-			'Bennylin',
-			'Evremonde',
-			'Ezagren',
-			'Farras',
-			'Kenrick95',
-			'Kia 80',
-			'M. Adiputra',
-			'Maqi',
-			'NoiX180',
-			'Reindra',
-			'StefanusRA',
-			'Tatasport',
-			'Wiendietry',
-			'Willy2000',
-		);
-		$ret .= '<table class="rc">';
-		foreach ($rcs as $rci)
-		{
-			$rc = $rci;
-			$users = '';
-			$time = strtotime($rc['timestamp']);
-
-			$rc['difflen'] = intval($rc['newlen']) - intval($rc['oldlen']);
-			$rc['difflen'] = ($rc['difflen'] > 0 ? '+' : '') . $rc['difflen'];
-			$rc['diffclass'] = intval($rc['difflen']) >= 0 ? 'size-pos' : 'size-neg';
-			if (intval($rc['difflen']) == 0) $rc['diffclass'] = 'size-null';
-			if (abs(intval($rc['difflen'])) >= 500) $rc['diffclass'] .= ' size-large';
-
-			foreach ($rc['users'] as $user_id => $user)
-			{
-				$class = $user['anon'] ? 'user-anon' : 'user-login';
-				if (!$user['anon'] && in_array($user_id, $trusted)) $class = 'user-trusted';
-				$users .= $users ? '; ' : '';
-				$users .= sprintf('<a href="http://id.wikipedia.org/wiki/Istimewa:Kontribusi_pengguna/%1$s" class="%2$s">%1$s</a>', $user_id, $class);
-				$users .= $user['count'] > 1 ? ' (' . $user['count'] . 'x)' : '';
-			}
-			$class = ($rc['anon'] == 'yes') ? 'anon' : '';
-			$cur_date = date('d M Y', $time);
-			$url = sprintf('http://id.wikipedia.org/w/index.php?diff=%1$s&oldid=%2$s', $rc['revid'], $rc['old_revid']);
-			if ($ronda->diff_only) $url .= '&diffonly=1';
-
-			if ($cur_date != $last_date)
-			{
-				$ret .= sprintf('<tr><td colspan="6" class="date">%1$s</td></tr>', $cur_date);
-			}
-			$ret .= sprintf('<tr class="%1$s" valign="top">', $class);
-			$ret .= sprintf('<td width="1" class="ns-%2$s">%1$s</td>', '&nbsp;', $rc['ns']);
-			$ret .= sprintf('<td>%1$s</td>', ($rc['type'] == 'new' ? 'B' : ''));
-			//$ret .= sprintf('<td>%1$s</td>', ($rc['type'] == 'new' ? 'B' : '&nbsp;&nbsp;') . (array_key_exists('minor', $rc) ? 'k' : '&nbsp;&nbsp;'), $url);
-			$ret .= sprintf('<td>%1$s</td>', date('H.i', $time));
-			$ret .= sprintf('<td><a href="%2$s">%1$s</a>%3$s</td>', $rc['title'], $url,
-				($rc['count'] > 1 ? ' (' . $rc['count'] . 'x)' : '')
-			);
-			$ret .= sprintf('<td align="center" nowrap class="%2$s">%1$s</td>', $rc['difflen'], $rc['diffclass']);
-			$ret .= sprintf('<td>%1$s</td>', $users);
-			$ret .= sprintf('<td class="changes">%1$s</td>', format_summary($rc['changes']));
-			$ret .= '</tr>';
-
-			$last_date = $cur_date;
-		}
-		$ret .= '</table>';
-	}
-}
 $TITLE = 'Ronda';
 $CONTENT .= sprintf('<h1>%1$s</h1>', $TITLE);
 $CONTENT .= $ronda->search;
 $CONTENT .= $ret;
-
-function format_summary($changes)
-{
-	$max = 50;
-	$ret = count($changes) == 1 ? strip_tags($changes[0]['parsedcomment']) : '';
-	if (strlen($ret) > $max) $ret = substr($ret, 0, $max) . ' ...';
-	return($ret);
-}
 
 /**
  * 2011-03-08 11:02
  */
 class ronda
 {
-	var $user_agent = 'Ronda - A custom recent changes for Indonesian Wikipedia - User:IvanLanin';
+	var $user_agent = 'Ronda - http://code.google.com/p/ronda';
 	var $default_limit = 500;
 	var $default_ns = '0|1|2|4|5|6|7|8|9|10|11|12|13|14|15|100|101';
 	var $max_limit = 500;
 	var $min_limit = 1;
 	var $search;
+	var $data;
 
 	/**
 	 */
@@ -255,7 +128,6 @@ class ronda
 		$this->search = $search;
 
 		// curl
-		$base = 'http://id.wikipedia.org/w/api.php?';
 		$param = 'action=query' .
 			'&list=recentchanges' .
 			'&rctype=%1$s' .
@@ -263,18 +135,160 @@ class ronda
 			'&rcnamespace=%3$s' .
 			'&rcshow=!bot%4$s' .
 			'%5$s' .
-			'&rcprop=title|timestamp|user|ids|flags|sizes|parsedcomment' .
-			'&format=json';
+			'&rcprop=title|timestamp|user|ids|flags|sizes|parsedcomment';
 		$param = sprintf($param, $rc_type, $rc_limit, $rc_ns, $rc_anon,
 			$rc_exclude_user ? '&rcexcludeuser=' . urlencode($rc_exclude_user) : ''
 		);
+		$this->data = $this->curl($param);
+	}
+
+	/**
+	 */
+	function curl($param)
+	{
+		$base = 'http://id.wikipedia.org/w/api.php?format=json&';
+		$url = $base . $param;
 		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $base . $param);
+		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_USERAGENT, $this->user_agent);
 		$output = curl_exec($ch);
 		$ret = json_decode($output, true);
 		curl_close($ch);
+		return($ret);
+	}
+
+	/**
+	 */
+	function html()
+	{
+		$raws = $this->data;
+		if ($raws)
+		{
+			$rcs = array();
+			if ($raws2 = $raws['query']['recentchanges'])
+			{
+				// get unique page id
+				foreach ($raws2 as $raw)
+				{
+					$key = $raw['pageid'];
+					if (!array_key_exists($key, $rcs))
+					{
+						$rcs[$key]['pageid'] = $raw['pageid'];
+						$rcs[$key]['revid'] = $raw['revid'];
+						$rcs[$key]['old_revid'] = $raw['old_revid'];
+						if (array_key_exists('minor', $raw)) $rcs[$key]['minor'] = $raw['minor'];
+						$rcs[$key]['timestamp'] = $raw['timestamp'];
+						$rcs[$key]['title'] = $raw['title'];
+						$rcs[$key]['user'] = $raw['user'];
+						$rcs[$key]['type'] = $raw['type'];
+						$rcs[$key]['newlen'] = $raw['newlen'];
+						$rcs[$key]['oldlen'] = $raw['oldlen'];
+						$rcs[$key]['count'] = 1;
+						$rcs[$key]['users'][$raw['user']]['count'] = 1;
+					}
+					else
+					{
+						if (array_key_exists('new', $raw)) $rcs[$key]['type'] = 'new';
+						$rcs[$key]['old_revid'] = $raw['old_revid'];
+						$rcs[$key]['count']++;
+						$rcs[$key]['users'][$raw['user']]['count']++;
+						$rcs[$key]['oldlen'] = $raw['oldlen'];
+					}
+					$rcs[$key]['changes'][] = $raw;
+					$rcs[$key]['ns'] = $raw['ns'];
+					if (array_key_exists('anon', $raw))
+					{
+						$rcs[$key]['anon'] = 'yes';
+						$rcs[$key]['users'][$raw['user']]['anon'] = true;
+					}
+				}
+				// write
+				$trusted = $this->trusted_users();
+				$ret .= '<table class="rc">';
+				foreach ($rcs as $rci)
+				{
+					$rc = $rci;
+					$users = '';
+					$time = strtotime($rc['timestamp']);
+
+					$rc['difflen'] = intval($rc['newlen']) - intval($rc['oldlen']);
+					$rc['difflen'] = ($rc['difflen'] > 0 ? '+' : '') . $rc['difflen'];
+					$rc['diffclass'] = intval($rc['difflen']) >= 0 ? 'size-pos' : 'size-neg';
+					if (intval($rc['difflen']) == 0) $rc['diffclass'] = 'size-null';
+					if (abs(intval($rc['difflen'])) >= 500) $rc['diffclass'] .= ' size-large';
+
+					foreach ($rc['users'] as $user_id => $user)
+					{
+						$class = $user['anon'] ? 'user-anon' : 'user-login';
+						if (!$user['anon'] && in_array($user_id, $trusted)) $class = 'user-trusted';
+						$users .= $users ? '; ' : '';
+						$users .= sprintf('<a href="http://id.wikipedia.org/wiki/Istimewa:Kontribusi_pengguna/%1$s" class="%2$s">%1$s</a>', $user_id, $class);
+						$users .= $user['count'] > 1 ? ' (' . $user['count'] . 'x)' : '';
+					}
+					$class = ($rc['anon'] == 'yes') ? 'anon' : '';
+					$cur_date = date('d M Y', $time);
+					$url = sprintf('http://id.wikipedia.org/w/index.php?diff=%1$s&oldid=%2$s', $rc['revid'], $rc['old_revid']);
+					if ($ronda->diff_only) $url .= '&diffonly=1';
+
+					if ($cur_date != $last_date)
+					{
+						$ret .= sprintf('<tr><td colspan="6" class="date">%1$s</td></tr>', $cur_date);
+					}
+					$ret .= sprintf('<tr class="%1$s" valign="top">', $class);
+					$ret .= sprintf('<td width="1" class="ns-%2$s">%1$s</td>', '&nbsp;', $rc['ns']);
+					$ret .= sprintf('<td>%1$s</td>', ($rc['type'] == 'new' ? 'B' : ''));
+					//$ret .= sprintf('<td>%1$s</td>', ($rc['type'] == 'new' ? 'B' : '&nbsp;&nbsp;') . (array_key_exists('minor', $rc) ? 'k' : '&nbsp;&nbsp;'), $url);
+					$ret .= sprintf('<td>%1$s</td>', date('H.i', $time));
+					$ret .= sprintf('<td><a href="%2$s">%1$s</a>%3$s</td>', $rc['title'], $url,
+						($rc['count'] > 1 ? ' (' . $rc['count'] . 'x)' : '')
+					);
+					$ret .= sprintf('<td align="center" nowrap class="%2$s">%1$s</td>', $rc['difflen'], $rc['diffclass']);
+					$ret .= sprintf('<td>%1$s</td>', $users);
+					$ret .= sprintf('<td class="changes">%1$s</td>', $this->format_summary($rc['changes']));
+					$ret .= '</tr>';
+
+					$last_date = $cur_date;
+				}
+				$ret .= '</table>';
+			}
+		}
+		return($ret);
+	}
+
+	/**
+	 */
+	function trusted_users()
+	{
+		$base = 'action=query&list=allusers' .
+			'&aulimit=100' .
+			'&auprop=blockinfo|editcount|registration' .
+			'&augroup=%1$s';
+		$param = sprintf($base, 'editor');
+		$raw1 = $this->curl(sprintf($base, 'editor'));
+		$raw2 = $this->curl(sprintf($base, 'sysop'));
+		$this->get_users($raw1, $raw);
+		$this->get_users($raw2, $raw);
+		$raw = array_unique($raw);
+		return($raw);
+	}
+
+	/**
+	 */
+	function get_users($raw, &$users)
+	{
+		if ($tmp = $raw['query']['allusers'])
+			foreach ($tmp as $user)
+				$users[] = $user['name'];
+	}
+
+	/**
+	 */
+	function format_summary($changes)
+	{
+		$max = 50;
+		$ret = count($changes) == 1 ? strip_tags($changes[0]['parsedcomment']) : '';
+		if (strlen($ret) > $max) $ret = substr($ret, 0, $max) . ' ...';
 		return($ret);
 	}
 }
