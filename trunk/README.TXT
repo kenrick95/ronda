@@ -20,3 +20,8 @@ Lisensi: GPL v3 atau yang lebih baru.
 * UBAH: Pemisahan gaya dan javascript menjadi berkas tersendiri
 * UBAH: Pengguna tepercaya tidak didefisikan secara manual, tapi diambil
         berdasarkan daftar sysop dan editor
+
+=== 2011-03-10 ===
+
+* BARU: Pengalihan dimiringkan
+* BARU: Pengembalian dicoret
