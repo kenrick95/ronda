@@ -11,13 +11,16 @@ form { margin-bottom: 20px; padding: 5px; background: #eee; }
 .changes { font-style: italic; }
 
 .user-trusted { color: #999999; }
-.user-login { color: #330099; }
-.user-anon { color: #CC0000; }
+.user-login { color: #990000; }
+.user-anon { color: #FF0000; }
 
 .size-neg { color:#FF2050; }
 .size-pos { color:#00B000; }
 .size-null { color:#999; }
 .size-large { font-weight: bold; }
+
+.redirect { font-style: italic; }
+.revert { text-decoration: line-through; }
 
 .ns-0, .ns-1 { background: #C0C0C0 !important; } /* Artikel */
 .ns-2, .ns-3 { background: #00FFFF !important; } /* Pengguna */
