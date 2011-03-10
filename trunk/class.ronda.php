@@ -63,7 +63,7 @@ class ronda
 			if ($val['title'])
 			{
 				$menu .= $menu ? ' | ' : '';
-				$menu .= sprintf('<a href="./?mod=%2$s">%1$s</a>', $val['title'], $key);
+				$menu .= sprintf('<a href="./?mod=%2$s" target="_self">%1$s</a>', $val['title'], $key);
 			}
 		}
 		$this->menu = $menu;
@@ -480,7 +480,7 @@ class ronda
 	{
 		$found = false;
 		if (strpos($summary, 'dikembalikan ke versi terakhir') !== false) $found = true;
-		if (strpos($summary, 'membatalkan revisi') !== false) $found = true;
+		if (strpos($summary, 'Membatalkan revisi') !== false) $found = true;
 		return($found);
 	}
 }
