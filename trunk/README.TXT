@@ -25,3 +25,4 @@ Lisensi: GPL v3 atau yang lebih baru.
 
 * BARU: Pengalihan dimiringkan
 * BARU: Pengembalian dicoret
+* BARU: Suntingan tunda
