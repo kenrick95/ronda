@@ -5,7 +5,7 @@ a:hover { text-decoration: underline; }
 table.data { border-collapse: collapse; width: 100%;  }
 table.data td { padding: 2px 5px; border-bottom: 1px solid #FFF; }
 tr.anon td { background: #eee; }
-form { margin-bottom: 20px; padding: 5px; background: #eee; }
+form#search { margin-bottom: 20px; padding: 5px; background: #eee; }
 
 #footer { margin-top: 20px; }
 #menu { margin: 0px 0px 10px 0px; }

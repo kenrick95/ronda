@@ -12,6 +12,7 @@ Lisensi: GPL v3 atau yang lebih baru.
 * BARU: Pengalihan dimiringkan
 * BARU: Pengembalian dicoret
 * BARU: Suntingan tunda
+* BARU: Penambahan PT untuk 4 proyek WMF lain dan WP JV dan SU
 
 === 2011-03-09 ===
 
