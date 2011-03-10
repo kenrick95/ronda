@@ -8,6 +8,17 @@
  */
 class ronda
 {
+	var $user_agent = 'Ronda - http://code.google.com/p/ronda';
+	var $projects = array(
+		'id.wikipedia',
+		'jv.wikipedia',
+		'su.wikipedia',
+		'id.wiktionary',
+		'id.wikibooks',
+		'id.wikiquote',
+		'id.wikisource',
+	);
+	var $project;
 	var $title;
 	var $mod;
 	var $mods = array(
@@ -21,7 +32,9 @@ class ronda
 			'title' => 'Permintaan hapus',
 		),
 	);
-	var $user_agent = 'Ronda - http://code.google.com/p/ronda';
+	var $page_url;
+	var $idx_url;
+	var $api_url;
 	var $default_limit = 500;
 	var $default_ns = '0|1|2|4|5|6|7|8|9|10|11|12|13|14|15|100|101';
 	var $max_limit = 500;
@@ -34,7 +47,7 @@ class ronda
 	var $namespaces = array(
 		0 => 'Artikel',
 		2 => 'Pengguna',
-		4 => 'Wikipedia',
+		4 => 'Proyek',
 		6 => 'Berkas',
 		8 => 'MediaWiki',
 		10 => 'Templat',
@@ -43,7 +56,7 @@ class ronda
 		100 => 'Portal',
 		1 => 'Pembicaraan Artikel',
 		3 => 'Pembicaraan Pengguna',
-		5 => 'Pembicaraan Wikipedia',
+		5 => 'Pembicaraan Proyek',
 		7 => 'Pembicaraan Berkas',
 		9 => 'Pembicaraan MediaWiki',
 		11 => 'Pembicaraan Templat',
@@ -56,17 +69,48 @@ class ronda
 	 */
 	function process($get)
 	{
+		if (in_array($get['p'], $this->projects))
+			$this->project = $get['p'];
+		else
+			$this->project = $this->projects[0];
+		$domain = sprintf('http://%1$s.org', $this->project);
+		$this->page_url = $domain . '/wiki';
+		$this->idx_url = $domain . '/w/index.php';
+		$this->api_url = $domain . '/w/api.php';
+
 		$this->mod = array_key_exists($get['mod'], $this->mods) ? $get['mod'] : 'rc';
 		$this->title = 'Ronda: ' . $this->mods[$this->mod]['title'];
+
+		// menu
 		foreach ($this->mods as $key => $val)
 		{
+			if ($this->project != 'id.wikipedia' && $key != 'rc') continue;
 			if ($val['title'])
 			{
 				$menu .= $menu ? ' | ' : '';
 				$menu .= sprintf('<a href="./?mod=%2$s" target="_self">%1$s</a>', $val['title'], $key);
 			}
 		}
-		$this->menu = $menu;
+		// select
+		foreach ($this->projects as $project)
+		{
+			$select .= sprintf('<option value="%1$s"%2$s>%1$s</option>',
+				$project, $project == $this->project ? ' selected' : '');
+		}
+		$this->menu .= '<form id="project" method="get" action="./?">';
+		$this->menu .= '<table cellpadding="0" cellspacing="0" width="100%">';
+		$this->menu .= '<tr valign="top">';
+		$this->menu .= '<td>';
+		$this->menu .= $menu;
+		$this->menu .= '</td><td align="right">';
+		$this->menu .= '<select name="p" onchange="this.form.submit();">';
+		$this->menu .= $select;
+		$this->menu .= '</select>';
+		$this->menu .= '</td>';
+		$this->menu .= '</tr>';
+		$this->menu .= '</table>';
+		$this->menu .= '</form>';
+
 		switch ($this->mod)
 		{
 			case 'rc':
@@ -183,8 +227,9 @@ class ronda
 			);
 		}
 		$search .= '</tr></table>';
+		$search .= sprintf('<input type="hidden" name="p" value="%1$s" />', $this->project);
 		$search .= '<input type="submit" value="Cari perubahan" />';
-		$search .= '<input type="button" value="Setelan bawaan" onclick="location.href = \'./\'" />';
+		$search .= sprintf('<input type="button" value="Setelan bawaan" onclick="location.href = \'./?p=%1$s\'" />', $this->project);
 		$search .= '</form>';
 		$this->search = $search;
 
@@ -263,15 +308,19 @@ class ronda
 					$rc['difflen'] = intval($rc['newlen']) - intval($rc['oldlen']);
 					foreach ($rc['users'] as $user_id => $user)
 					{
+						$url = '%1$s/Special:Contribution/%2$s';
+						$url = sprintf($url, $this->page_url, $user_id);
 						$class = $user['anon'] ? 'user-anon' : 'user-login';
-						if (!$user['anon'] && in_array($user_id, $trusted)) $class = 'user-trusted';
+						if (!$user['anon'] && in_array($user_id, $trusted))
+							$class = 'user-trusted';
 						$users .= $users ? '; ' : '';
-						$users .= sprintf('<a href="http://id.wikipedia.org/wiki/Istimewa:Kontribusi_pengguna/%1$s" class="%2$s">%1$s</a>', $user_id, $class);
+						$users .= sprintf('<a href="%2$s" class="%3$s">%1$s</a>', $user_id, $url, $class);
 						$users .= $user['count'] > 1 ? ' (' . $user['count'] . 'x)' : '';
 					}
 					$class = ($rc['anon'] == 'yes' && !$this->anon_only) ? 'anon' : '';
 					$cur_date = date('d M Y', $time);
-					$url = sprintf('http://id.wikipedia.org/w/index.php?diff=%1$s&oldid=%2$s', $rc['revid'], $rc['old_revid']);
+					$url = sprintf('%1$s?diff=%2$s&oldid=%3$s',
+						$this->idx_url, $rc['revid'], $rc['old_revid']);
 					if ($this->diff_only) $url .= '&diffonly=1';
 
 					if ($cur_date != $last_date)
@@ -321,7 +370,7 @@ class ronda
 	 */
 	function html_pr()
 	{
-		$base = 'http://id.wikipedia.org/w/index.php?diff=cur&oldid=%1$s&diffonly=1';
+		$base = $this->idx_url . '?diff=cur&oldid=%1$s&diffonly=1';
 		if ($rows = $this->data['query']['oldreviewedpages'])
 		{
 			$ret .= '<table class="data">';
@@ -374,7 +423,7 @@ class ronda
 	 */
 	function html_dr()
 	{
-		$base = 'http://id.wikipedia.org/wiki/%1$s';
+		$base = $this->page_url . '/%1$s';
 		if ($rows = $this->data['query']['categorymembers'])
 		{
 			$ret .= '<table class="data">';
@@ -408,7 +457,7 @@ class ronda
 	 */
 	function curl($params)
 	{
-		$base = 'http://id.wikipedia.org/w/api.php?format=json';
+		$base = $this->api_url . '?format=json';
 		foreach ($params as $key => $val)
 		{
 			$param .= sprintf('&%1$s=%2$s', $key, $val);
