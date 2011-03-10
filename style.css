@@ -1,13 +1,16 @@
+* { font-size: normal; }
+h1 { margin: 10px 0px 10px 0px; padding: 0px; font-size: 150%; }
 a { text-decoration: none; }
 a:hover { text-decoration: underline; }
-table.rc { border-collapse: collapse; width: 100%;  }
-table.rc td { padding: 2px 5px; border-bottom: 1px solid #FFF; }
+table.data { border-collapse: collapse; width: 100%;  }
+table.data td { padding: 2px 5px; border-bottom: 1px solid #FFF; }
 tr.anon td { background: #eee; }
 form { margin-bottom: 20px; padding: 5px; background: #eee; }
 
 #footer { margin-top: 20px; }
+#menu { margin: 0px 0px 10px 0px; }
 
-.date { font-weight: bold; font-size: 120%; padding: 10px 0px; }
+td.date { font-weight: bold; font-size: 100%; padding: 10px 0px 10px 0px !important; }
 .changes { font-style: italic; }
 
 .user-trusted { color: #999999; }
@@ -19,6 +22,7 @@ form { margin-bottom: 20px; padding: 5px; background: #eee; }
 .size-null { color:#999; }
 .size-large { font-weight: bold; }
 
+/* .new { font-weight: bold; } */
 .redirect { font-style: italic; }
 .revert { text-decoration: line-through; }
 
