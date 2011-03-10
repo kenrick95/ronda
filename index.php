@@ -13,6 +13,7 @@ $CONTENT = $ret;
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<base target="_new" />
 <title><?php echo($TITLE); ?></title>
 <link type="text/css" rel="stylesheet" href="style.css" />
 <script type="text/javascript" src="script.js"></script>
