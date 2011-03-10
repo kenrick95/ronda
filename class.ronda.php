@@ -79,7 +79,8 @@ class ronda
 		$this->api_url = $domain . '/w/api.php';
 
 		$this->mod = array_key_exists($get['mod'], $this->mods) ? $get['mod'] : 'rc';
-		$this->title = 'Ronda: ' . $this->mods[$this->mod]['title'];
+		$this->title = sprintf('Ronda: %1$s (%2$s)',
+			$this->mods[$this->mod]['title'], $this->project);
 
 		// menu
 		foreach ($this->mods as $key => $val)
