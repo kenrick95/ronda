@@ -1,10 +1,17 @@
 = RONDA =
 
-http://ivan.lanin.org/ronda
+* http://ivan.lanin.org/ronda
+* http://code.google.com/p/ronda
 
 Lisensi: GPL v3 atau yang lebih baru.
 
 == LOG PERUBAHAN ==
+
+=== 2011-03-10 ===
+
+* BARU: Pengalihan dimiringkan
+* BARU: Pengembalian dicoret
+* BARU: Suntingan tunda
 
 === 2011-03-09 ===
 
@@ -20,9 +27,3 @@ Lisensi: GPL v3 atau yang lebih baru.
 * UBAH: Pemisahan gaya dan javascript menjadi berkas tersendiri
 * UBAH: Pengguna tepercaya tidak didefisikan secara manual, tapi diambil
         berdasarkan daftar sysop dan editor
-
-=== 2011-03-10 ===
-
-* BARU: Pengalihan dimiringkan
-* BARU: Pengembalian dicoret
-* BARU: Suntingan tunda

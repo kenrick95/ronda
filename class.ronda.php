@@ -17,6 +17,9 @@ class ronda
 		'pr' => array(
 			'title' => 'Suntingan tunda',
 		),
+		'dr' => array(
+			'title' => 'Permintaan hapus',
+		),
 	);
 	var $user_agent = 'Ronda - http://code.google.com/p/ronda';
 	var $default_limit = 500;
@@ -27,7 +30,7 @@ class ronda
 	var $menu; // html for menu
 	var $data;
 	var $anon_only = false;
-	var $diff_only = false;
+	var $diff_only = true;
 	var $namespaces = array(
 		0 => 'Artikel',
 		2 => 'Pengguna',
@@ -57,8 +60,11 @@ class ronda
 		$this->title = 'Ronda: ' . $this->mods[$this->mod]['title'];
 		foreach ($this->mods as $key => $val)
 		{
-			$menu .= $menu ? ' | ' : '';
-			$menu .= sprintf('<a href="./?mod=%2$s">%1$s</a>', $val['title'], $key);
+			if ($val['title'])
+			{
+				$menu .= $menu ? ' | ' : '';
+				$menu .= sprintf('<a href="./?mod=%2$s">%1$s</a>', $val['title'], $key);
+			}
 		}
 		$this->menu = $menu;
 		switch ($this->mod)
@@ -68,6 +74,9 @@ class ronda
 				break;
 			case 'pr':
 				$this->process_pr($get);
+				break;
+			case 'dr':
+				$this->process_dr($get);
 				break;
 		}
 
@@ -85,6 +94,9 @@ class ronda
 			case 'pr':
 				$content = $this->html_pr();
 				break;
+			case 'dr':
+				$content = $this->html_dr();
+				break;
 		}
 		$ret .= sprintf('<div id="menu">%1$s</div>', $this->menu);
 		$ret .= sprintf('<h1>%1$s</h1>', $this->title);
@@ -101,8 +113,8 @@ class ronda
 		$rc_exclude_user = trim($get['exclude_user']);
 		$rc_type = $get['new'] ? 'new' : 'new|edit';
 		$rc_anon = $get['anon'] ? '|anon' : '';
-		$this->anon_only = ($get['anon'] != '');
-		$this->diff_only = ($get['diff'] == 1 ? 1 : 0);
+		$this->anon_only = ($get['anon'] != '' ? $get['anon'] : $this->anon_only);
+		$this->diff_only = ($get['diff'] != '' ? $get['diff'] : $this->diff_only);
 
 		// limit
 		$rc_limit = intval($get['limit']);
@@ -248,13 +260,7 @@ class ronda
 					$rc = $rci;
 					$users = '';
 					$time = strtotime($rc['timestamp']);
-
 					$rc['difflen'] = intval($rc['newlen']) - intval($rc['oldlen']);
-					$rc['difflen'] = ($rc['difflen'] > 0 ? '+' : '') . $rc['difflen'];
-					$rc['diffclass'] = intval($rc['difflen']) >= 0 ? 'size-pos' : 'size-neg';
-					if (intval($rc['difflen']) == 0) $rc['diffclass'] = 'size-null';
-					if (abs(intval($rc['difflen'])) >= 500) $rc['diffclass'] .= ' size-large';
-
 					foreach ($rc['users'] as $user_id => $user)
 					{
 						$class = $user['anon'] ? 'user-anon' : 'user-login';
@@ -270,19 +276,19 @@ class ronda
 
 					if ($cur_date != $last_date)
 					{
-						$ret .= sprintf('<tr><td colspan="6" class="date">%1$s</td></tr>', $cur_date);
+						$ret .= sprintf('<tr><td colspan="5" class="date">%1$s</td></tr>', $cur_date);
 					}
 					$ret .= sprintf('<tr class="%1$s" valign="top">', $class);
-					$ret .= sprintf('<td width="1" class="ns-%2$s">%1$s</td>', '&nbsp;', $rc['ns']);
-					$ret .= sprintf('<td>%1$s</td>', ($rc['type'] == 'new' ? 'B' : ''));
-					$ret .= sprintf('<td>%1$s</td>', date('H.i', $time));
-					$ret .= sprintf('<td class="%4$s"><a href="%2$s">%1$s</a>%3$s</td>', $rc['title'], $url,
+					$ret .= sprintf('<td width="1" class="ns-%1$s">&nbsp;</td>', $rc['ns']);
+					$ret .= sprintf('<td width="1">%1$s</td>', date('H.i', $time));
+					$ret .= sprintf('<td><a href="%2$s" class="%4$s">%1$s</a>%3$s . . %5$s</td>', $rc['title'], $url,
 						($rc['count'] > 1 ? ' (' . $rc['count'] . 'x)' : ''),
 						($rc['redirect'] ? 'redirect ' : '') .
 							($rc['revert'] ? 'revert ' : '') .
-							($rc['type'] == 'new' ? 'new ' : '')
+							($rc['type'] == 'new' ? 'new ' : ''),
+						$this->format_diff($rc['difflen'])
 					);
-					$ret .= sprintf('<td align="center" nowrap class="%2$s">%1$s</td>', $rc['difflen'], $rc['diffclass']);
+					$ret .= sprintf('<td width="1">%1$s</td>', ($rc['type'] == 'new' ? 'B' : ''));
 					$ret .= sprintf('<td>%1$s</td>', $users);
 					$ret .= sprintf('<td class="changes">%1$s</td>', $this->format_summary($rc['changes']));
 					$ret .= '</tr>';
@@ -327,16 +333,68 @@ class ronda
 
 				if ($cur_date != $last_date)
 				{
-					$ret .= sprintf('<tr><td colspan="2" class="date">' .
+					$ret .= sprintf('<tr><td colspan="3" class="date">' .
 						'%1$s</td></tr>', $cur_date);
 				}
 				$ret .= '<tr>';
+				$ret .= sprintf('<td width="1" class="ns-%1$s">&nbsp;</td>', $row['ns']);
 				$ret .= sprintf('<td width="1">%1$s</td>', date('H.i', $time));
 				$ret .= sprintf(
 					'<td><a href="%2$s" class="%4$s">%1$s</a> . . %3$s</td>',
 					$row['title'], $url,
 					$this->format_diff($row['diff_size']),
 					$row['under_review'] ? 'revert' : ''
+				);
+				$ret .= '</tr>';
+				$last_date = $cur_date;
+			}
+			$ret .= '</table>';
+		}
+		return($ret);
+	}
+
+	/**
+	 * http://id.wikipedia.org/wiki/Kategori:Artikel yang layak untuk dihapus
+	 */
+	function process_dr()
+	{
+		$params = array(
+			'action'      => 'query',
+			'list'        => 'categorymembers',
+			'cmtitle'     => urlencode('Kategori:Artikel yang layak untuk dihapus'),
+			'cmprop'      => 'ids|title|type|timestamp',
+			'cmsort'      => 'timestamp',
+			'cmdir'       => 'desc',
+			'cmlimit'     => $this->default_limit,
+		);
+		$this->data = $this->curl($params);
+	}
+
+	/**
+	 */
+	function html_dr()
+	{
+		$base = 'http://id.wikipedia.org/wiki/%1$s';
+		if ($rows = $this->data['query']['categorymembers'])
+		{
+			$ret .= '<table class="data">';
+			foreach ($rows as $row)
+			{
+				$url = sprintf($base, $row['title']);
+				$time = strtotime($row['timestamp']);
+				$cur_date = date('d M Y', $time);
+
+				if ($cur_date != $last_date)
+				{
+					$ret .= sprintf('<tr><td colspan="3" class="date">' .
+						'%1$s</td></tr>', $cur_date);
+				}
+				$ret .= '<tr>';
+				$ret .= sprintf('<td width="1" class="ns-%1$s">&nbsp;</td>', $row['ns']);
+				$ret .= sprintf('<td width="1">%1$s</td>', date('H.i', $time));
+				$ret .= sprintf(
+					'<td><a href="%2$s">%1$s</a></td>',
+					$row['title'], $url
 				);
 				$ret .= '</tr>';
 				$last_date = $cur_date;
