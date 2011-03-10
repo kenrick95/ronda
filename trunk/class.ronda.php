@@ -309,7 +309,7 @@ class ronda
 					$rc['difflen'] = intval($rc['newlen']) - intval($rc['oldlen']);
 					foreach ($rc['users'] as $user_id => $user)
 					{
-						$url = '%1$s/Special:Contribution/%2$s';
+						$url = '%1$s/Special:Contributions/%2$s';
 						$url = sprintf($url, $this->page_url, $user_id);
 						$class = $user['anon'] ? 'user-anon' : 'user-login';
 						if (!$user['anon'] && in_array($user_id, $trusted))
