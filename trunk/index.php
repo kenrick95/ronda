@@ -3,7 +3,7 @@
  * 2011-03-07 10:45
  */
 include_once('class.ronda.php');
-$versi = 0.1.14;
+$version = '0.0.03';
 $ronda = new ronda();
 $ronda->process($_GET);
 $ret = $ronda->html();
@@ -21,6 +21,6 @@ $CONTENT = $ret;
 </head>
 <body>
 <?php echo($CONTENT); ?>
-<div id="footer"><a href="http://code.google.com/p/ronda/"><strong>ronda</strong></a> v.<?php echo $versi; ?> | <a href="README.TXT">README</a></div>
+<div id="footer"><a href="http://code.google.com/p/ronda/"><strong>ronda</strong></a> <?php echo($version); ?> | <a href="README.TXT">README</a></div>
 </body>
 </html>
