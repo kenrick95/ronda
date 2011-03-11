@@ -1,0 +1,25 @@
+#summary Daftar proyek Wikimedia Indonesia
+
+= Bahasa Indonesia =
+ * Wikipedia - id.wikipedia
+ * Wiktionary - id.wiktionary
+ * Wikisource - id.wikisource
+ * Wikibooks - id.wikibooks
+ * Wikiquote - id.wikiquote
+
+= Bahasa Sunda =
+ * Wikipedia - su.wikipedia
+ * Wiktionary - su.wiktionary
+ * Wikisource - su.wikisource
+ * Wikibooks - su.wikibooks
+ * Wikiquote - su.wikiquote
+
+= Bahasa Jawa =
+ * Wikipedia - jv.wikipedia
+ * Wiktionary - jv.wiktionary
+ * Wikisource - jv.wikisource 
+
+= Bahasa Melayu =
+ * Wikipedia - ms.wikipedia
+ * Wiktionary - ms.wiktionary
+ * Wikibooks - ms.wikibooks
