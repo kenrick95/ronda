@@ -1,13 +1,18 @@
 #summary Daftar proyek Wikimedia Indonesia
 
+Total: 16 proyek
 = Bahasa Indonesia =
- * Wikipedia - id.wikipedia
+5 proyek
+ * Wikipedia - id.wikipedia [1]
  * Wiktionary - id.wiktionary
  * Wikisource - id.wikisource
  * Wikibooks - id.wikibooks
  * Wikiquote - id.wikiquote
 
+[1]: punya FlaggedRevs
+
 = Bahasa Sunda =
+5 proyek
  * Wikipedia - su.wikipedia
  * Wiktionary - su.wiktionary
  * Wikisource - su.wikisource
@@ -15,11 +20,13 @@
  * Wikiquote - su.wikiquote
 
 = Bahasa Jawa =
+3 proyek
  * Wikipedia - jv.wikipedia
  * Wiktionary - jv.wiktionary
  * Wikisource - jv.wikisource 
 
 = Bahasa Melayu =
+3 proyek
  * Wikipedia - ms.wikipedia
  * Wiktionary - ms.wiktionary
  * Wikibooks - ms.wikibooks
