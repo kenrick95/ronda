@@ -22,9 +22,6 @@ class ronda
 	var $title;
 	var $mod;
 	var $mods = array(
-		'rc' => array(
-			'title' => 'Perubahan terbaru',
-		),
 		'pr' => array(
 			'title' => 'Suntingan tunda',
 		),
@@ -83,6 +80,7 @@ class ronda
 			$this->mods[$this->mod]['title'], $this->project);
 
 		// menu
+      $menu .= sprintf('<a href="./?p=%1s" target="_self">Perubahan terbaru</a>', $this->project);
 		foreach ($this->mods as $key => $val)
 		{
 			if ($this->project != 'id.wikipedia' && $key != 'rc') continue;
@@ -230,7 +228,6 @@ class ronda
 		$search .= '</tr></table>';
 		$search .= sprintf('<input type="hidden" name="p" value="%1$s" />', $this->project);
 		$search .= '<input type="submit" value="Cari perubahan" />';
-		$search .= sprintf('<input type="button" value="Setelan bawaan" onclick="location.href = \'./?p=%1$s\'" />', $this->project);
 		$search .= '</form>';
 		$this->search = $search;
 
