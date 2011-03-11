@@ -17,14 +17,15 @@ td.date { font-weight: bold; font-size: 100%; padding: 10px 0px 10px 0px !import
 .user-login { color: #990000; }
 .user-anon { color: #FF0000; }
 
-.size-neg { color:#FF2050; }
-.size-pos { color:#00B000; }
-.size-null { color:#999; }
-.size-large { font-weight: bold; }
+.size-neg { color:#FF2050; white-space: nowrap; }
+.size-pos { color:#00B000; white-space: nowrap; }
+.size-null { color:#999; white-space: nowrap; }
+.size-large { font-weight: bold; white-space: nowrap; }
 
 /* .new { font-weight: bold; } */
 .redirect { font-style: italic; }
 .revert { text-decoration: line-through; }
+.stat { font-size:x-small; vertical-align:top; font-weight: bold; color: #ccc; }
 
 .ns-0, .ns-1 { background: #C0C0C0 !important; } /* Artikel */
 .ns-2, .ns-3 { background: #00FFFF !important; } /* Pengguna */

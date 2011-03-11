@@ -5,16 +5,28 @@
 
 Lisensi: GPL v3 atau yang lebih baru.
 
+== RENCANA ==
+
+* Statistik halaman
+
 == LOG PERUBAHAN ==
 
-=== 2011-03-10 ===
+=== 0.0.3: 2011-03-11 ===
+
+* BARU: Versi
+* UBAH: Penghilangan tombol setelan bawaan untuk perubahan terbaru
+* UBAH: Perbaikan mod=pr untuk menampilkan selain ruang nama utama
+* BARU: Statistik halaman (mod=page)
+* BARU: Statistik pengguna (mod=user)
+
+=== 0.0.2: 2011-03-10 ===
 
 * BARU: Pengalihan dimiringkan
 * BARU: Pengembalian dicoret
 * BARU: Suntingan tunda
 * BARU: Penambahan PT untuk 4 proyek WMF lain dan WP JV dan SU
 
-=== 2011-03-09 ===
+=== 0.0.1: 2011-03-09 ===
 
 * INFO: Pencarian pengguna peka kapitalisasi
 * INFO: Jumlah perubahan maksimum yang bisa diambil tanpa masuk log = 500

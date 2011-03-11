@@ -2,7 +2,8 @@
 /**
  * mods:
  * rc: recent changes (perubahan terbaru)
- * pr: pending revision (revisi tunda)
+ * pr: pending revision (suntingan tunda)
+ * dr: deletion request (permintaaan hapus)
  *
  * 2011-03-08 11:02
  */
@@ -22,17 +23,16 @@ class ronda
 	var $title;
 	var $mod;
 	var $mods = array(
-		'pr' => array(
-			'title' => 'Suntingan tunda',
-		),
-		'dr' => array(
-			'title' => 'Permintaan hapus',
-		),
+		'rc'   => array('title' => 'Perubahan terbaru',),
+		'pr'   => array('title' => 'Suntingan tunda',),
+		'dr'   => array('title' => 'Permintaan hapus',),
+		'page' => array('title' => 'Statistik laman',),
+		'user' => array('title' => 'Statistik pengguna',),
 	);
 	var $page_url;
 	var $idx_url;
 	var $api_url;
-	var $default_limit = 500;
+	var $default_limit = 10;
 	var $default_ns = '0|1|2|4|5|6|7|8|9|10|11|12|13|14|15|100|101';
 	var $max_limit = 500;
 	var $min_limit = 1;
@@ -63,39 +63,42 @@ class ronda
 	);
 
 	/**
+	 * Process a function
 	 */
 	function process($get)
 	{
+		// project
 		if (in_array($get['p'], $this->projects))
 			$this->project = $get['p'];
 		else
 			$this->project = $this->projects[0];
+		// domain
 		$domain = sprintf('http://%1$s.org', $this->project);
 		$this->page_url = $domain . '/wiki';
 		$this->idx_url = $domain . '/w/index.php';
 		$this->api_url = $domain . '/w/api.php';
-
-		$this->mod = array_key_exists($get['mod'], $this->mods) ? $get['mod'] : 'rc';
-		$this->title = sprintf('Ronda: %1$s (%2$s)',
-			$this->mods[$this->mod]['title'], $this->project);
-
-		// menu
-      $menu .= sprintf('<a href="./?p=%1s" target="_self">Perubahan terbaru</a>', $this->project);
+		// module
+		$this->mod = array_key_exists($get['mod'], $this->mods) ?
+			$get['mod'] : 'rc';
+		$this->title = $this->mods[$this->mod]['title'];
+		// menu: only display if has title -> can hide
 		foreach ($this->mods as $key => $val)
 		{
 			if ($this->project != 'id.wikipedia' && $key != 'rc') continue;
 			if ($val['title'])
 			{
 				$menu .= $menu ? ' | ' : '';
-				$menu .= sprintf('<a href="./?mod=%2$s" target="_self">%1$s</a>', $val['title'], $key);
+				$menu .= sprintf('<a href="./?mod=%2$s">%1$s</a>',
+					$val['title'], $key);
 			}
 		}
-		// select
+		// project selection
 		foreach ($this->projects as $project)
 		{
 			$select .= sprintf('<option value="%1$s"%2$s>%1$s</option>',
 				$project, $project == $this->project ? ' selected' : '');
 		}
+		// page header
 		$this->menu .= '<form id="project" method="get" action="./?">';
 		$this->menu .= '<table cellpadding="0" cellspacing="0" width="100%">';
 		$this->menu .= '<tr valign="top">';
@@ -109,38 +112,22 @@ class ronda
 		$this->menu .= '</tr>';
 		$this->menu .= '</table>';
 		$this->menu .= '</form>';
-
-		switch ($this->mod)
-		{
-			case 'rc':
-				$this->process_rc($get);
-				break;
-			case 'pr':
-				$this->process_pr($get);
-				break;
-			case 'dr':
-				$this->process_dr($get);
-				break;
-		}
-
+		// process
+		$function = 'process_' . $this->mod;
+		$this->$function($get);
 	}
 
 	/**
+	 * Display HTML
 	 */
 	function html()
 	{
-		switch ($this->mod)
-		{
-			case 'rc':
-				$content = $this->html_rc();
-				break;
-			case 'pr':
-				$content = $this->html_pr();
-				break;
-			case 'dr':
-				$content = $this->html_dr();
-				break;
-		}
+		// title
+		$this->title = sprintf('Ronda: %1$s (%2$s)',
+			$this->title, $this->project);
+		// process
+		$function = 'html_' . $this->mod;
+		$content = $this->$function();
 		$ret .= sprintf('<div id="menu">%1$s</div>', $this->menu);
 		$ret .= sprintf('<h1>%1$s</h1>', $this->title);
 		$ret .= $this->search;
@@ -152,13 +139,12 @@ class ronda
 	 */
 	function process_rc($get)
 	{
-		// param
+		// exclude user, type, only anon, only diff
 		$rc_exclude_user = trim($get['exclude_user']);
 		$rc_type = $get['new'] ? 'new' : 'new|edit';
 		$rc_anon = $get['anon'] ? '|anon' : '';
-		$this->anon_only = ($get['anon'] != '' ? $get['anon'] : $this->anon_only);
-		$this->diff_only = ($get['diff'] != '' ? $get['diff'] : $this->diff_only);
-
+		if ($get['anon'] != '') $this->anon_only = $get['anon'];
+		if ($get['diff'] != '') $this->diff_only = $get['anon'];
 		// limit
 		$rc_limit = intval($get['limit']);
 		if (!$rc_limit) $rc_limit = $this->default_limit;
@@ -194,17 +180,23 @@ class ronda
 
 		// search form
 		$search .= '<form id="search" name="search" method="get" action="./">';
-		$search .= sprintf('Jumlah entri: <input type="text" name="limit" size="5" value="%1$s" /> ', $rc_limit);
-		$search .= sprintf('Kecualikan pengguna: <input type="text" name="exclude_user" size="15" value="%1$s" /> ', $rc_exclude_user);
+		$search .= sprintf('Jumlah entri: <input type="text" name="limit" ' .
+			'size="5" value="%1$s" /> ', $rc_limit);
+		$search .= sprintf('Kecualikan pengguna: <input type="text" ' .
+			'name="exclude_user" size="15" value="%1$s" /> ', $rc_exclude_user);
 		$search .= '<br />Pilihan: ';
-		$search .= sprintf('<input type="checkbox" name="new" value="1" %1$s/>Hanya baru ',
+		$search .= sprintf('<input type="checkbox" name="new" value="1" ' .
+			'%1$s/>Hanya baru ',
 			$rc_type == 'new' ? 'checked="checked" ' : '');
-		$search .= sprintf('<input type="checkbox" name="anon" value="1" %1$s/>Hanya anon ',
+		$search .= sprintf('<input type="checkbox" name="anon" value="1" ' .
+			'%1$s/>Hanya anon ',
 			$rc_anon ? 'checked="checked" ' : '');
-		$search .= sprintf('<input type="checkbox" name="diff" value="1" %1$s/>Hanya perbedaan ',
+		$search .= sprintf('<input type="checkbox" name="diff" value="1" ' .
+			'%1$s/>Hanya perbedaan ',
 			$this->diff_only ? 'checked="checked" ' : '');
 		$search .= '<br />Ruang nama: ';
-		$search .= '<select name="ns_select" id="ns_select" onChange="select_ns(this.form)">';
+		$search .= '<select name="ns_select" id="ns_select" ' .
+			'onChange="select_ns(this.form)">';
 		$search .= '<option value=""></option>';
 		foreach ($ns_select as $key => $val)
 		{
@@ -219,14 +211,15 @@ class ronda
 		{
 			if ($key == 1) $search .= '</tr><tr>';
 			$val = str_replace('Pembicaraan ', 'P.', $val);
-			$search .= sprintf(
-				'<td><input type="checkbox" name="ns[]" value="%1$s" %3$s/>%2$s</td>',
-				$key, $val,
-				in_array(intval($key), $rc_ns_array) ? 'checked="checked" ' : ''
-			);
+			$checked = in_array(intval($key), $rc_ns_array) ?
+				'checked="checked" ' : '';
+			$search .= sprintf('<td><input type="checkbox" name="ns[]" ' .
+				'value="%1$s" %3$s/>%2$s</td>', $key, $val, $checked);
+
 		}
 		$search .= '</tr></table>';
-		$search .= sprintf('<input type="hidden" name="p" value="%1$s" />', $this->project);
+		$search .= sprintf('<input type="hidden" name="p" value="%1$s" />',
+			$this->project);
 		$search .= '<input type="submit" value="Cari perubahan" />';
 		$search .= '</form>';
 		$this->search = $search;
@@ -267,7 +260,8 @@ class ronda
 						$rcs[$key]['pageid'] = $raw['pageid'];
 						$rcs[$key]['revid'] = $raw['revid'];
 						$rcs[$key]['old_revid'] = $raw['old_revid'];
-						if (array_key_exists('minor', $raw)) $rcs[$key]['minor'] = $raw['minor'];
+						if (array_key_exists('minor', $raw))
+							$rcs[$key]['minor'] = $raw['minor'];
 						$rcs[$key]['timestamp'] = $raw['timestamp'];
 						$rcs[$key]['title'] = $raw['title'];
 						$rcs[$key]['user'] = $raw['user'];
@@ -279,14 +273,17 @@ class ronda
 					}
 					else
 					{
-						if (array_key_exists('new', $raw)) $rcs[$key]['type'] = 'new';
+						if (array_key_exists('new', $raw))
+							$rcs[$key]['type'] = 'new';
 						$rcs[$key]['old_revid'] = $raw['old_revid'];
 						$rcs[$key]['count']++;
 						$rcs[$key]['users'][$raw['user']]['count']++;
 						$rcs[$key]['oldlen'] = $raw['oldlen'];
 					}
-					if ($this->check_revert($raw['parsedcomment'])) $rcs[$key]['revert'] = true;
-					if (array_key_exists('redirect', $raw)) $rcs[$key]['redirect'] = true;
+					if ($this->check_revert($raw['parsedcomment']))
+						$rcs[$key]['revert'] = true;
+					if (array_key_exists('redirect', $raw))
+						$rcs[$key]['redirect'] = true;
 					$rcs[$key]['changes'][] = $raw;
 					$rcs[$key]['ns'] = $raw['ns'];
 					if (array_key_exists('anon', $raw))
@@ -303,7 +300,9 @@ class ronda
 					$rc = $rci;
 					$users = '';
 					$time = strtotime($rc['timestamp']);
-					$rc['difflen'] = intval($rc['newlen']) - intval($rc['oldlen']);
+					$rc['difflen'] = $rc['newlen'] - $rc['oldlen'];
+					$i = 0;
+					$ucount = count($rc['users']);
 					foreach ($rc['users'] as $user_id => $user)
 					{
 						$url = '%1$s/Special:Contributions/%2$s';
@@ -311,15 +310,25 @@ class ronda
 						$class = $user['anon'] ? 'user-anon' : 'user-login';
 						if (!$user['anon'] && in_array($user_id, $trusted))
 							$class = 'user-trusted';
-						$users .= $users ? '; ' : '';
-						$users .= sprintf('<a href="%2$s" class="%3$s">%1$s</a>', $user_id, $url, $class);
-						$users .= $user['count'] > 1 ? ' (' . $user['count'] . 'x)' : '';
+						$users .= sprintf('<a href="%2$s" class="%3$s">%1$s</a>',
+							$user_id, $url, $class);
+						$users .= $user['count'] > 1 ?
+							' (' . $user['count'] . 'x)' : '';
+						$i++;
+						$users .= sprintf('&nbsp;<a href="./?mod=user&project=%1$s' .
+							'&user=%2$s" class="stat">&raquo;</a> ',
+							$this->project, $user_id);
 					}
 					$class = ($rc['anon'] == 'yes' && !$this->anon_only) ? 'anon' : '';
 					$cur_date = date('d M Y', $time);
 					$url = sprintf('%1$s?diff=%2$s&oldid=%3$s',
 						$this->idx_url, $rc['revid'], $rc['old_revid']);
 					if ($this->diff_only) $url .= '&diffonly=1';
+					// page quality url
+					$url_pq = sprintf('./?mod=page&p=%2$s&page=%1$s',
+						urlencode($rc['title']),
+						$this->project
+					);
 
 					if ($cur_date != $last_date)
 					{
@@ -328,16 +337,20 @@ class ronda
 					$ret .= sprintf('<tr class="%1$s" valign="top">', $class);
 					$ret .= sprintf('<td width="1" class="ns-%1$s">&nbsp;</td>', $rc['ns']);
 					$ret .= sprintf('<td width="1">%1$s</td>', date('H.i', $time));
-					$ret .= sprintf('<td><a href="%2$s" class="%4$s">%1$s</a>%3$s . . %5$s</td>', $rc['title'], $url,
+					$ret .= sprintf('<td><a href="%2$s" class="%4$s">%1$s</a>' .
+						'%3$s <a href="%6$s" class="stat">&raquo;</a> . . %5$s</td>',
+						$rc['title'], $url,
 						($rc['count'] > 1 ? ' (' . $rc['count'] . 'x)' : ''),
 						($rc['redirect'] ? 'redirect ' : '') .
 							($rc['revert'] ? 'revert ' : '') .
 							($rc['type'] == 'new' ? 'new ' : ''),
-						$this->format_diff($rc['difflen'])
+						$this->format_diff($rc['difflen']),
+						$url_pq
 					);
 					$ret .= sprintf('<td width="1">%1$s</td>', ($rc['type'] == 'new' ? 'B' : ''));
 					$ret .= sprintf('<td>%1$s</td>', $users);
-					$ret .= sprintf('<td class="changes">%1$s</td>', $this->format_summary($rc['changes']));
+					$ret .= sprintf('<td class="changes">%1$s</td>',
+						$this->format_summary($rc['changes']));
 					$ret .= '</tr>';
 
 					$last_date = $cur_date;
@@ -352,12 +365,13 @@ class ronda
 	 * http://id.wikipedia.org/wiki/Istimewa:Halaman_tertinjau_usang
 	 * http://id.wikipedia.org/wiki/Istimewa:Statistik_validasi
 	 */
-	function process_pr()
+	function process_pr($get)
 	{
 		$params = array(
 			'action'      => 'query',
 			'list'        => 'oldreviewedpages',
 			'ordir'       => 'older',
+			'ornamespace' => '0|6|10',
 			'orlimit'     => $this->default_limit,
 		);
 		$this->data = $this->curl($params);
@@ -384,7 +398,8 @@ class ronda
 						'%1$s</td></tr>', $cur_date);
 				}
 				$ret .= '<tr>';
-				$ret .= sprintf('<td width="1" class="ns-%1$s">&nbsp;</td>', $row['ns']);
+				$ret .= sprintf('<td width="1" class="ns-%1$s">&nbsp;</td>',
+					$row['ns']);
 				$ret .= sprintf('<td width="1">%1$s</td>', date('H.i', $time));
 				$ret .= sprintf(
 					'<td><a href="%2$s" class="%4$s">%1$s</a> . . %3$s</td>',
@@ -403,7 +418,7 @@ class ronda
 	/**
 	 * http://id.wikipedia.org/wiki/Kategori:Artikel yang layak untuk dihapus
 	 */
-	function process_dr()
+	function process_dr($get)
 	{
 		$params = array(
 			'action'      => 'query',
@@ -437,7 +452,8 @@ class ronda
 						'%1$s</td></tr>', $cur_date);
 				}
 				$ret .= '<tr>';
-				$ret .= sprintf('<td width="1" class="ns-%1$s">&nbsp;</td>', $row['ns']);
+				$ret .= sprintf('<td width="1" class="ns-%1$s">&nbsp;</td>',
+					$row['ns']);
 				$ret .= sprintf('<td width="1">%1$s</td>', date('H.i', $time));
 				$ret .= sprintf(
 					'<td><a href="%2$s">%1$s</a></td>',
@@ -445,6 +461,219 @@ class ronda
 				);
 				$ret .= '</tr>';
 				$last_date = $cur_date;
+			}
+			$ret .= '</table>';
+		}
+		return($ret);
+	}
+
+	/**
+	 *
+	 */
+	function process_page($get)
+	{
+		$page = $get['page'];
+		if ($page == '') $page = 'Halaman Utama';
+
+		// search form
+		$search .= '<form id="search" name="search" method="get" action="./">';
+		$search .= sprintf('<input type="hidden" name="mod" value="%1$s" />',
+			$this->mod);
+		$search .= sprintf('<input type="hidden" name="p" value="%1$s" />',
+			$this->project);
+		$search .= sprintf('Judul: <input type="text" ' .
+			'name="title" size="30" value="%1$s" /> ', $page);
+		$search .= '<input type="submit" value="Cari" />';
+		$search .= '</form>';
+		$this->search = $search;
+
+		// basic info
+		$params = array(
+			'action'      => 'query',
+			'prop'        => 'info|flagged',
+			'titles'      => urlencode($page),
+		);
+		$raw = $this->curl($params);
+		$parts = array('title', 'pageid', 'ns', 'touched', 'lastrevid', 'length');
+		if ($tmp = $raw['query']['pages'])
+		{
+			$key = key($tmp); // get the first element
+			$tmp = $tmp[$key];
+			if ($key > 0)
+				foreach ($parts as $key => $part)
+					$this->data['page'][$part] = $tmp[$part];
+			else
+				return;
+			// flagged?
+			if ($tmp['flagged'])
+			{
+				$this->data['page']['revlevel'] = $tmp['flagged']['level_text'];
+				$this->data['page']['stablerevid'] = $tmp['flagged']['stable_revid'];
+				$this->data['page']['pendingsince'] = $tmp['flagged']['pending_since'];
+			}
+			$this->data['page']['title'] = sprintf('<a href="%2$s/%1$s">%1$s</a>',
+				$this->data['page']['title'], $this->page_url
+			);
+		}
+		// parse
+		$params = array(
+			'action'      => 'parse',
+			'page'        => urlencode($page),
+			'prop'        => 'revid|displaytitle|sections|categories|images|templates|links|langlinks|iwlinks|externallinks',
+		);
+		$raw = $this->curl($params);
+		$parts = array('sections', 'categories',
+			'images', 'templates', 'links', 'langlinks', 'iwlinks',
+			'externallinks');
+		if ($tmp = $raw['parse'])
+			foreach ($parts as $part)
+				$this->data['page'][$part] = $tmp[$part];
+		// revisions
+		$params = array(
+			'action'      => 'query',
+			'prop'        => 'revisions',
+			'titles'      => urlencode($page),
+			'rvprop'      => 'ids|timestamp|flags|parsedcomment|user|size',
+			'rvlimit'     => 500,
+		);
+		$raw = $this->curl($params);
+		if ($tmp = $raw['query']['pages'])
+		{
+			$key = key($tmp); // get the first element
+			$tmp = $tmp[$key];
+			if ($key > 0)
+				$this->data['page']['revisions'] = $tmp['revisions'];
+		}
+		// backlinks
+		$params = array(
+			'action'     => 'query',
+			'list'       => 'backlinks',
+			'bllimit'    => 500,
+			'bltitle'    => urlencode($page),
+		);
+		$raw = $this->curl($params);
+		if ($raw['query']['backlinks'])
+			$this->data['page']['backlinks'] = $raw['query']['backlinks'];
+		else
+			$this->data['page']['backlinks'] = 0;
+
+		// finalization
+		$this->title = $this->title . ': ' . $page;
+	}
+
+	/**
+	 * displaytitle: displayed title
+	 * revid: one number
+	 * sections: 10
+	 * categories: sortkey, *
+	 * images: 7
+	 * templates: 19
+	 * links: ns, *, exists // only valid links, no broken links
+	 * langlinks: lang, url, *: to other language
+	 * iwlinks: links to other wikis (including wikia): prefix, url, *
+	 * externallinks: external links: one dimension array
+	 */
+	function html_page()
+	{
+		$page_props = array(
+			'title' => array('title' => 'Judul',),
+			'pageid' => array('title' => 'ID laman',),
+			'ns' => array('title' => 'Ruang nama',),
+			'length' => array('title' => 'Panjang',),
+			'touched' => array('title' => 'Revisi terakhir',),
+			'lastrevid' => array('title' => 'ID revisi terakhir',),
+			'stablerevid' => array('title' => 'ID revisi stabil',),
+			'sections' => array('title' => 'Subbagian',),
+			'categories' => array('title' => 'Kategori',),
+			'images' => array('title' => 'Berkas',),
+			'templates' => array('title' => 'Templat',),
+			'links' => array('title' => 'Pranala internal',),
+			'backlinks' => array('title' => 'Pranala balik',),
+			'langlinks' => array('title' => 'Pranala antarbahasa',),
+			'iwlinks' => array('title' => 'Pranala antarwiki',),
+			'externallinks' => array('title' => 'Pranala luar',),
+			'revisions' => array('title' => 'Revisi',),
+		);
+		//	'revlevel' => array('title' => 'Status revisi',),
+		//	'pendingsince' => array('title' => 'Tertunda sejak',),
+		if ($rows = $this->data['page'])
+		{
+			$ret .= '<table>';
+			foreach ($page_props as $key => $val)
+			{
+				$row = $rows[$key];
+				$ret .= sprintf('<tr><td>%1$s</td><td>%2$s</td></tr>',
+					$page_props[$key]['title'],
+					is_array($row) ? count($row) : $row
+				);
+			}
+			$ret .= '</table>';
+		}
+		return($ret);
+	}
+
+	/**
+	 *
+	 */
+	function process_user($get)
+	{
+		$user = $get['user'];
+
+		// search form
+		$search .= '<form id="search" name="search" method="get" action="./">';
+		$search .= sprintf('<input type="hidden" name="mod" value="%1$s" />',
+			$this->mod);
+		$search .= sprintf('<input type="hidden" name="p" value="%1$s" />',
+			$this->project);
+		$search .= sprintf('Judul: <input type="text" ' .
+			'name="user" size="30" value="%1$s" /> ', $user);
+		$search .= '<input type="submit" value="Cari" />';
+		$search .= '</form>';
+		$this->search = $search;
+
+		// basic info
+		$params = array(
+			'action'      => 'query',
+			'list'        => 'allusers',
+			'aulimit'     => 1,
+			'auprop'      => 'blockinfo|groups|editcount|registration',
+			'aufrom'      => urlencode($user),
+		);
+		$raw = $this->curl($params);
+
+		$parts = array('name', 'userid', 'editcount', 'registration', 'groups');
+		if ($tmp = $raw['query']['allusers'][0])
+		{
+			if ($tmp['name'] != $user) return;
+			$this->data['user'] = $tmp;
+		}
+		if ($this->data['user']['groups'])
+			$this->data['user']['groups'] = implode(', ', $this->data['user']['groups']);
+		// finalization
+		$this->title = $this->title . ': ' . $page;
+	}
+
+	/**
+	 */
+	function html_user()
+	{
+		$page_props = array(
+			'name' => array('title' => 'Nama pengguna',),
+			'userid' => array('title' => 'ID pengguna',),
+			'registration' => array('title' => 'Tanggal pendaftaran',),
+			'groups' => array('title' => 'Kelompok',),
+			'editcount' => array('title' => 'Jumlah suntingan',),
+		);
+		if ($rows = $this->data['user'])
+		{
+			$ret .= '<table>';
+			foreach ($page_props as $key => $val)
+			{
+				$row = $rows[$key];
+				$ret .= sprintf('<tr><td>%1$s</td><td>%2$s</td></tr>',
+					$page_props[$key]['title'],
+					is_array($row) ? count($row) : $row
+				);
 			}
 			$ret .= '</table>';
 		}
@@ -505,7 +734,8 @@ class ronda
 	function format_summary($changes)
 	{
 		$max = 50;
-		$ret = count($changes) == 1 ? strip_tags($changes[0]['parsedcomment']) : '';
+		$ret = count($changes) == 1 ?
+			strip_tags($changes[0]['parsedcomment']) : '';
 		if (strlen($ret) > $max) $ret = substr($ret, 0, $max) . ' ...';
 		return($ret);
 	}
@@ -515,9 +745,11 @@ class ronda
 	function format_diff($diff)
 	{
 		$num = (($diff > 0) ? ('+' . $diff) : $diff);
-		$size = ($diff == 0 ? 'size-null' : ($diff > 0 ? 'size-pos' : 'size-neg'));
+		$size = ($diff == 0 ?
+			'size-null' : ($diff > 0 ? 'size-pos' : 'size-neg'));
 		$large = (abs(intval($diff)) >= 500 ? ' size-large' : '');
-		$ret = sprintf('<span class="%2$s%3$s">(%1$s)</span>', $num, $size, $large);
+		$ret = sprintf('<span class="%2$s%3$s">(%1$s)</span>',
+			$num, $size, $large);
 		return($ret);
 	}
 
@@ -526,8 +758,13 @@ class ronda
 	function check_revert($summary)
 	{
 		$found = false;
-		if (strpos($summary, 'dikembalikan ke versi terakhir') !== false) $found = true;
-		if (strpos($summary, 'Membatalkan revisi') !== false) $found = true;
+		$phrases = array(
+			'dikembalikan ke versi terakhir',
+			'mengembalikan revisi',
+			'Membatalkan revisi',
+		);
+		foreach ($phrases as $phrase)
+			if (strpos($summary, $phrase) !== false) $found = true;
 		return($found);
 	}
 }
