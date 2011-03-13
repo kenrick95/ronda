@@ -11,6 +11,10 @@ Lisensi: GPL v3 atau yang lebih baru.
 
 == LOG PERUBAHAN ==
 
+=== 0.0.4: 2011-03-13 ===
+
+* BARU: Tampilan butir perincian artikel (kategori, pranala, dll)
+
 === 0.0.3: 2011-03-11 ===
 
 * BARU: Versi
