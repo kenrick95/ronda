@@ -442,7 +442,7 @@ class ronda
 			$ret .= '<table class="data">';
 			foreach ($rows as $row)
 			{
-				$url = sprintf($base, $row['title']);
+				$url = sprintf($base, $this->format_title($row['title']));
 				$time = strtotime($row['timestamp']);
 				$cur_date = date('d M Y', $time);
 
@@ -511,9 +511,6 @@ class ronda
 				$this->data['page']['stablerevid'] = $tmp['flagged']['stable_revid'];
 				$this->data['page']['pendingsince'] = $tmp['flagged']['pending_since'];
 			}
-			$this->data['page']['title'] = sprintf('<a href="%2$s/%1$s">%1$s</a>',
-				$this->data['page']['title'], $this->page_url
-			);
 		}
 		// parse
 		$params = array(
@@ -556,44 +553,56 @@ class ronda
 			$this->data['page']['backlinks'] = $raw['query']['backlinks'];
 		else
 			$this->data['page']['backlinks'] = 0;
-
 		// finalization
+		if (is_array($this->data['page']['links']))
+			$this->data['page']['links']
+				= $this->subval_sort($this->data['page']['links'], '*');
+		if (is_array($this->data['page']['backlinks']))
+			$this->data['page']['backlinks']
+				= $this->subval_sort($this->data['page']['backlinks'], 'title');
+		if (is_array($this->data['page']['categories']))
+			foreach ($this->data['page']['categories'] as $key => $val)
+				$this->data['page']['categories'][$key]['*']
+					= str_replace('_', ' ', $val['*']);
+		if (is_array($this->data['page']['images']))
+			foreach ($this->data['page']['images'] as $key => $val)
+				$this->data['page']['images'][$key]
+					= str_replace('_', ' ', $val);
 		$this->title = $this->title . ': ' . $page;
 	}
 
 	/**
-	 * displaytitle: displayed title
-	 * revid: one number
-	 * sections: 10
+	 * sections: toclevel, level, line, number, index, fromtitle, byteoffset, anchor
 	 * categories: sortkey, *
-	 * images: 7
-	 * templates: 19
-	 * links: ns, *, exists // only valid links, no broken links
-	 * langlinks: lang, url, *: to other language
-	 * iwlinks: links to other wikis (including wikia): prefix, url, *
-	 * externallinks: external links: one dimension array
+	 * images: plain array
+	 * templates: ns, *, exists
+	 * links: ns, *, exists
+	 * backlinks: pageid, ns, title
+	 * langlinks: lang, url, *
+	 * iwlinks: prefix, url, *
+	 * externallinks: plain
 	 */
 	function html_page()
 	{
 		$page_props = array(
 			'title' => array('title' => 'Judul',),
-			'pageid' => array('title' => 'ID laman',),
 			'ns' => array('title' => 'Ruang nama',),
 			'length' => array('title' => 'Panjang',),
 			'touched' => array('title' => 'Revisi terakhir',),
 			'lastrevid' => array('title' => 'ID revisi terakhir',),
 			'stablerevid' => array('title' => 'ID revisi stabil',),
-			'sections' => array('title' => 'Subbagian',),
-			'categories' => array('title' => 'Kategori',),
+			'sections' => array('title' => 'Subbagian', 'child_field' => 'line',),
+			'categories' => array('title' => 'Kategori', 'child_field' => '*',),
 			'images' => array('title' => 'Berkas',),
-			'templates' => array('title' => 'Templat',),
-			'links' => array('title' => 'Pranala internal',),
-			'backlinks' => array('title' => 'Pranala balik',),
-			'langlinks' => array('title' => 'Pranala antarbahasa',),
-			'iwlinks' => array('title' => 'Pranala antarwiki',),
+			'templates' => array('title' => 'Templat', 'child_field' => '*',),
+			'links' => array('title' => 'Pranala internal', 'child_field' => '*',),
+			'backlinks' => array('title' => 'Pranala balik', 'child_field' => 'title',),
+			'langlinks' => array('title' => 'Pranala antarbahasa', 'child_field' => 'lang',),
+			'iwlinks' => array('title' => 'Pranala antarwiki', 'child_field' => '*',),
 			'externallinks' => array('title' => 'Pranala luar',),
 			'revisions' => array('title' => 'Revisi',),
 		);
+		//	'pageid' => array('title' => 'ID laman',),
 		//	'revlevel' => array('title' => 'Status revisi',),
 		//	'pendingsince' => array('title' => 'Tertunda sejak',),
 		if ($rows = $this->data['page'])
@@ -601,11 +610,74 @@ class ronda
 			$ret .= '<table>';
 			foreach ($page_props as $key => $val)
 			{
+				$ext = ($key == 'externallinks');
 				$row = $rows[$key];
-				$ret .= sprintf('<tr><td>%1$s</td><td>%2$s</td></tr>',
-					$page_props[$key]['title'],
-					is_array($row) ? count($row) : $row
-				);
+				$header = $page_props[$key]['title'];
+				if (!is_array($row))
+				{
+					if ($key == 'title')
+						$row = sprintf('<a href="%2$s/%1$s">%1$s</a>',
+							$row, $this->page_url);
+					$content = $row;
+				}
+				else
+				{
+					if ($key != 'revisions')
+					{
+						$content = $ext ? '<ol>' : '';
+						$header .= sprintf(' (%1$s)', count($row));
+						foreach ($row as $item)
+						{
+							// get the value
+							if ($val['child_field'])
+								$item_val = $item[$val['child_field']];
+							else
+								$item_val = $item;
+							// put link
+							$item_url = $this->page_url . '/';
+							switch ($key)
+							{
+								case 'sections':
+									$item_url .= $this->data['page']['title'] . '#' . str_replace(' ', '_', $item_val);
+									break;
+								case 'images':
+									$item_url .= $this->namespaces[6] . ':' . $item_val;
+									break;
+								case 'categories':
+									$item_url .= $this->namespaces[14] . ':' . $item_val;
+									break;
+								case 'langlinks':
+									$item_url = $item['url'];
+									break;
+								case 'externallinks':
+									$item_url = $item_val;
+									break;
+								default:
+									$item_url .= $item_val;
+									break;
+							}
+
+							$item_val = sprintf('<a href="%2$s">%1$s</a>', $item_val, $item_url);
+							// external links special treatment
+							if (!$ext)
+							{
+								$content .= $content ? '; ' : '';
+								$content .= sprintf('%1$s', $item_val);
+							}
+							else
+								$content .= sprintf('<li>%1$s</li>', $item_val);
+						}
+						$content .= $ext ? '</ol>' : '';
+					}
+					else
+					{
+						$content = '';
+					}
+				}
+				$ret .= sprintf(
+					'<tr valign="top"><td class="label">%1$s:</td>' .
+					'<td class="content">%2$s</td></tr>',
+					$header, $content);
 			}
 			$ret .= '</table>';
 		}
@@ -670,7 +742,7 @@ class ronda
 			foreach ($page_props as $key => $val)
 			{
 				$row = $rows[$key];
-				$ret .= sprintf('<tr><td>%1$s</td><td>%2$s</td></tr>',
+				$ret .= sprintf('<tr valign="top"><td>%1$s</td><td>%2$s</td></tr>',
 					$page_props[$key]['title'],
 					is_array($row) ? count($row) : $row
 				);
@@ -729,6 +801,18 @@ class ronda
 				$users[] = $user['name'];
 	}
 
+	function format_title($title)
+	{
+		$ret = urlencode(str_replace(' ', '_', $title));
+		return($ret);
+	}
+
+	/**
+	 */
+	function format_date($date, $format = 'datetime')
+	{
+	}
+
 	/**
 	 */
 	function format_summary($changes)
@@ -766,5 +850,19 @@ class ronda
 		foreach ($phrases as $phrase)
 			if (strpos($summary, $phrase) !== false) $found = true;
 		return($found);
+	}
+
+	/**
+	 * http://www.firsttube.com/read/sorting-a-multi-dimensional-array-with-php/
+	 */
+	function subval_sort($a, $subkey) {
+		foreach($a as $k=>$v) {
+			$b[$k] = strtolower($v[$subkey]);
+		}
+		asort($b);
+		foreach($b as $key => $val) {
+			$c[] = $a[$key];
+		}
+		return $c;
 	}
 }
