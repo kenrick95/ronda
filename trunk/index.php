@@ -3,7 +3,7 @@
  * 2011-03-07 10:45
  */
 include_once('class.ronda.php');
-$version = '0.0.03';
+$version = '0.0.04';
 $ronda = new ronda();
 $ronda->process($_GET);
 $ret = $ronda->html();
