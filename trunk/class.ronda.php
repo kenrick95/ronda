@@ -213,7 +213,7 @@ class ronda
 			$val = str_replace('Pembicaraan ', 'P.', $val);
 			$checked = in_array(intval($key), $rc_ns_array) ?
 				'checked="checked" ' : '';
-			$search .= sprintf('<td><input type="checkbox" name="ns[]" ' .
+			$search .= sprintf('<td class="ns-%1$s"><input type="checkbox" name="ns[]" ' .
 				'value="%1$s" %3$s/>%2$s</td>', $key, $val, $checked);
 
 		}

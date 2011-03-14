@@ -34,10 +34,10 @@ td.date { font-weight: bold; font-size: 100%; padding: 10px 0px 10px 0px !import
 
 .ns-0, .ns-1 { background: #C0C0C0 !important; } /* Artikel */
 .ns-2, .ns-3 { background: #00FFFF !important; } /* Pengguna */
-.ns-4, .ns-5 { background: #800080 !important; } /* Wikipedia */
-.ns-6, .ns-7 { background: #800000 !important; } /* Berkas */
+.ns-4, .ns-5 { background: #A600A6 !important; } /* Wikipedia */
+.ns-6, .ns-7 { background: #D20000 !important; } /* Berkas */
 .ns-8, .ns-9 { background: #FFFF00 !important; } /* MediaWiki */
 .ns-10, .ns-11 { background: #808000 !important; } /* Templat */
 .ns-12, .ns-13 { background: #FF00FF !important; } /* Bantuan */
 .ns-14, .ns-15 { background: #008080 !important; } /* Kategori */
-.ns-100, .ns-101 { background: #008000 !important; } /* Portal */
+.ns-100, .ns-101 { background: #00C000 !important; } /* Portal */
