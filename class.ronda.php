@@ -337,9 +337,17 @@ class ronda
 					}
 					$class = ($rc['anon'] == 'yes' && !$this->anon_only) ? 'anon' : '';
 					$cur_date = date('d M Y', $time);
-					$url = sprintf('%1$s?diff=%2$s&oldid=%3$s',
-						$this->idx_url, $rc['revid'], $rc['old_revid']);
-					if ($this->diff_only) $url .= '&diffonly=1';
+					if ($rc['type'] == 'new')
+					{
+						$url = sprintf('%1$s/%2$s',
+							$this->page_url, $this->format_title($rc['title']));
+					}
+					else
+					{
+						$url = sprintf('%1$s?diff=%2$s&oldid=%3$s',
+							$this->idx_url, $rc['revid'], $rc['old_revid']);
+						if ($this->diff_only) $url .= '&diffonly=1';
+					}
 					// page quality url
 					$url_pq = sprintf('./?mod=page&p=%2$s&page=%1$s',
 						urlencode($rc['title']),
