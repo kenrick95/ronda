@@ -18,6 +18,7 @@ Lisensi: GPL v3 atau yang lebih baru.
 * BARU: Pilihan untuk memuat ulang setiap 1 menit sekali
 * BARU: Penambahan PT untuk ace.wp, map-bms.wp, dan bjn.wp
 * UBAH: Tampilan daftar bisa disembunyikan dalam statistik laman
+* UBAH: URL halaman baru adalah ke laman, bukan diff
 
 === 0.0.4: 2011-03-13 ===
 
