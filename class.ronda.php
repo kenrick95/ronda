@@ -14,6 +14,9 @@ class ronda
 		'id.wikipedia',
 		'jv.wikipedia',
 		'su.wikipedia',
+		'map-bms.wikipedia',
+		'ace.wikipedia',
+		'bjn.wikipedia',
 		'id.wiktionary',
 		'id.wikibooks',
 		'id.wikiquote',
@@ -41,6 +44,8 @@ class ronda
 	var $data;
 	var $anon_only = false;
 	var $diff_only = true;
+	var $auto_refresh = false;
+	var $refresh_time = 60000; // time to refresh in miliseconds
 	var $namespaces = array(
 		0 => 'Artikel',
 		2 => 'Pengguna',
@@ -61,6 +66,8 @@ class ronda
 		15 => 'Pembicaraan Kategori',
 		101 => 'Pembicaraan Portal',
 	);
+	var $onload = '';
+	var $jquery = '';
 
 	/**
 	 * Process a function
@@ -101,10 +108,11 @@ class ronda
 		// page header
 		$this->menu .= '<form id="project" method="get" action="./?">';
 		$this->menu .= '<table cellpadding="0" cellspacing="0" width="100%">';
-		$this->menu .= '<tr valign="top">';
+		$this->menu .= '<tr>';
 		$this->menu .= '<td>';
 		$this->menu .= $menu;
-		$this->menu .= '</td><td align="right">';
+		$this->menu .= '</td>';
+		$this->menu .= '<td align="right">';
 		$this->menu .= '<select name="p" onchange="this.form.submit();">';
 		$this->menu .= $select;
 		$this->menu .= '</select>';
@@ -145,6 +153,7 @@ class ronda
 		$rc_anon = $get['anon'] ? '|anon' : '';
 		if ($get['anon'] != '') $this->anon_only = $get['anon'];
 		if ($get['diff'] != '') $this->diff_only = $get['anon'];
+		if ($get['ar'] != '') $this->auto_refresh = $get['ar'];
 		// limit
 		$rc_limit = intval($get['limit']);
 		if (!$rc_limit) $rc_limit = $this->default_limit;
@@ -194,6 +203,9 @@ class ronda
 		$search .= sprintf('<input type="checkbox" name="diff" value="1" ' .
 			'%1$s/>Hanya perbedaan ',
 			$this->diff_only ? 'checked="checked" ' : '');
+		$search .= sprintf('<input type="checkbox" name="ar" value="1" ' .
+			'%1$s/>Muat ulang setiap 1 menit',
+			$this->auto_refresh ? 'checked="checked" ' : '');
 		$search .= '<br />Ruang nama: ';
 		$search .= '<select name="ns_select" id="ns_select" ' .
 			'onChange="select_ns(this.form)">';
@@ -239,6 +251,9 @@ class ronda
 			$params['rcexcludeuser'] = urlencode($rc_exclude_user);
 		}
 		$this->data = $this->curl($params);
+		if ($this->auto_refresh)
+			$this->onload = ' onload="setTimeout(\'document.getElementById' .
+				'(\\\'search\\\').submit()\', ' . $this->refresh_time . ')"';
 	}
 
 	/**
@@ -308,8 +323,9 @@ class ronda
 						$url = '%1$s/Special:Contributions/%2$s';
 						$url = sprintf($url, $this->page_url, $user_id);
 						$class = $user['anon'] ? 'user-anon' : 'user-login';
-						if (!$user['anon'] && in_array($user_id, $trusted))
-							$class = 'user-trusted';
+						if (is_array($trusted))
+							if (!$user['anon'] && in_array($user_id, $trusted))
+								$class = 'user-trusted';
 						$users .= sprintf('<a href="%2$s" class="%3$s">%1$s</a>',
 							$user_id, $url, $class);
 						$users .= $user['count'] > 1 ?
@@ -622,10 +638,17 @@ class ronda
 				}
 				else
 				{
-					if ($key != 'revisions')
+					if ($key == 'revisions')
 					{
-						$content = $ext ? '<ol>' : '';
-						$header .= sprintf(' (%1$s)', count($row));
+						$content = sprintf('%1$s', count($row));
+					}
+					else
+					{
+						if (count($row) > 0)
+							$header = sprintf('%1$s (<a href="#" id="%3$s_header">%2$s</a>)', $header, count($row), $key);
+						else
+							$header = sprintf('%1$s (%2$s)', $header, count($row));
+						$list = '';
 						foreach ($row as $item)
 						{
 							// get the value
@@ -661,17 +684,21 @@ class ronda
 							// external links special treatment
 							if (!$ext)
 							{
-								$content .= $content ? '; ' : '';
-								$content .= sprintf('%1$s', $item_val);
+								$list .= $list ? '; ' : '';
+								$list .= sprintf('%1$s', $item_val);
 							}
 							else
-								$content .= sprintf('<li>%1$s</li>', $item_val);
+								$list .= sprintf('<li>%1$s</li>', $item_val);
 						}
+						$content = sprintf('<div id="%1$s_content">', $key);
+						$content .= $ext ? '<ol>' : '';
+						$content .= $list;
 						$content .= $ext ? '</ol>' : '';
-					}
-					else
-					{
-						$content = '';
+						$content .= '</div>';
+						// jquery
+						$this->jquery .= sprintf('$(\'a#%1$s_header\').click(function(){', $key);
+						$this->jquery .= sprintf('$(\'div#%1$s_content\').toggle();', $key);
+						$this->jquery .= "});";
 					}
 				}
 				$ret .= sprintf(
@@ -788,7 +815,7 @@ class ronda
 		$params['augroup'] = 'sysop';
 		$raw2 = $this->curl($params);
 		$this->get_users($raw2, $raw);
-		$raw = array_unique($raw);
+		if (is_array($raw)) $raw = array_unique($raw);
 		return($raw);
 	}
 
