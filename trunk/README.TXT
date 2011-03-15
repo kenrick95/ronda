@@ -7,9 +7,17 @@ Lisensi: GPL v3 atau yang lebih baru.
 
 == RENCANA ==
 
+* Pilihan untuk memuat ulang otomatis
+* Pilihan untuk membuka di jendela baru
 * Statistik halaman
 
 == LOG PERUBAHAN ==
+
+=== 0.0.5: 2011-03-16 ===
+
+* BARU: Pilihan untuk memuat ulang setiap 1 menit sekali
+* BARU: Penambahan PT untuk ace.wp, map-bms.wp, dan bjn.wp
+* UBAH: Tampilan daftar bisa disembunyikan dalam statistik laman
 
 === 0.0.4: 2011-03-13 ===
 
