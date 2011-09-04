@@ -36,7 +36,7 @@ function rtime(tleft){
 	if (tleft==0) {
 		window.location.reload();
 	} else {
-		tleft=tleft-1;
+		tleft=tleft-1000;
 		setTimeout("rtime("+tleft+")",1000);
 	}
 }
