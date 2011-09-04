@@ -154,6 +154,9 @@ class ronda
 		if ($get['anon'] != '') $this->anon_only = $get['anon'];
 		if ($get['diff'] != '') $this->diff_only = $get['anon'];
 		if ($get['ar'] != '') $this->auto_refresh = $get['ar'];
+    if ($this->auto_refresh) { 
+      $this->jquery .= "rtime(".$refresh_time.");";
+    }
 		// limit
 		$rc_limit = intval($get['limit']);
 		if (!$rc_limit) $rc_limit = $this->default_limit;
