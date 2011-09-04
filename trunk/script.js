@@ -32,3 +32,11 @@ function select_ns(form)
 	len = indexes.length;
 	for (i = 0; i < len; i++) chk[indexes[i]].checked = true;
 }
+function rtime(tleft){
+	if (tleft==0) {
+		window.location.reload();
+	} else {
+		tleft=tleft-1;
+		setTimeout("rtime("+tleft+")",1000);
+	}
+}
