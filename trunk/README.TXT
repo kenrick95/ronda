@@ -7,7 +7,6 @@ Lisensi: GPL v3 atau yang lebih baru.
 
 == RENCANA ==
 
-* Pilihan untuk memuat ulang otomatis
 * Pilihan untuk membuka di jendela baru
 * Statistik halaman
 
