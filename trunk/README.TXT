@@ -12,6 +12,12 @@ Lisensi: GPL v3 atau yang lebih baru.
 
 == LOG PERUBAHAN ==
 
+=== 0.0.6: 2012-05-30 07:20 ===
+
+* BARU: Statistik perubahan terbaru
+* BARU: Jumlah data pada suntingan tunda dan permintaan penghapusan
+* BARU: Penyunting terakhir pada suntingan tunda dan permintaan penghapusan
+
 === 0.0.5: 2011-03-16 ===
 
 * BARU: Pilihan untuk memuat ulang setiap 1 menit sekali
