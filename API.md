@@ -1,0 +1,1 @@
+http://id.wikipedia.org/w/api.php
